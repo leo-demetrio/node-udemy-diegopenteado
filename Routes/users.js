@@ -4,19 +4,20 @@ const User = require('./../model/user.js');
 const bcrypt = require('bcrypt');
 const jsonwebtoken = require('jsonwebtoken');
 const auth = require('./../middlewares/auth');
+const config = require('./../config/config');
 
 const webToken = (userId) => {
-	return jsonwebtoken.sign({id: userId}, 'tokendaapi',{expiresIn: '7d'});
+	return jsonwebtoken.sign({id: userId}, config.jwt_pass ,{expiresIn: config.jwt_expires});
 }
 
 router.get('/', auth,async (req,res) => {
 
 	try{
 		const users = await User.find({});
-		return res.send(users);
+		return res.staus(200).send(users);
 
 	} catch (err) {
-		if(err) return res.send({error: 'Não voi possível carregar'});
+		if(err) return res.status(400).send({error: 'Não voi possível carregar'});
 	}
 });
 
@@ -33,18 +34,18 @@ router.post('/create',auth, async (req,res) => {
 
 	const {email, password} = req.body;
 
-	if(!email || !password) return res.send({error: "Dados insuficentes"});
+	if(!email || !password) return res.staus(500).send({error: "Dados insuficentes"});
 
 	try {
 
-		if(await User.findOne({email})) return res.send({error: 'Usuário existente'});
+		if(await User.findOne({email})) return res.staus(500).send({error: 'Usuário existente'});
 
 		const user = await User.create(req.body);
 		user.password = undefined;
-		return res.send({user, token: webToken(user.id)});
+		return res.staus(201).send({user, token: webToken(user.id)});
 
 	} catch (err) {
-		return res.send({error: "Não foi criado"});
+		return res.staus(401).send({error: "Não foi criado"});
 	}
 
 });
@@ -86,12 +87,12 @@ router.post('/auth', async (req,res) => {
 		if(!user) return res.send({error: 'Usuário não encontardo'});
 
 		const pass_ok = await bcrypt.compare(password,user.password);
-		if(!pass_ok) return res.send({error: 'Senha inválida'});
+		if(!pass_ok) return res.staus(401).send({error: 'Senha inválida'});
 		user.password = undefined;
-		return res.send({user, token: webToken(user.id)});
+		return res.staus(200).send({user, token: webToken(user.id)});
 
 	} catch(err) {
-		return res.send({error: 'Erro ao logar'});
+		return res.staus(401).send({error: 'Erro ao logar'});
 	}
 
 });

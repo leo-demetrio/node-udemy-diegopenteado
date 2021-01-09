@@ -2,12 +2,17 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const config = require('./config/config');
 
 //Mongoose
-const urlMongo = 'mongodb+srv://user_admin:20202020@cluster0.hw2cr.mongodb.net/Cluster0?retryWrites=true&w=majority';
+const urlMongo = config.bd_connect;
 const options = {  poolSize: 5, useNewUrlParser: true, useUnifiedTopology: true}
 
+
 mongoose.connect(urlMongo,options);
+
+//const Product = require('./models/productsModel');
+
 mongoose.set('useCreateIndex', true);
 mongoose.connection.on('error', (error) => {
 	console.log(error);
